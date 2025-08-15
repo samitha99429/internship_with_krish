@@ -29,7 +29,7 @@ function getRandomLetter(){
          
         while(true){
                     
-             let userinputletter = prompt("Please input a English letter in between A-Z :").toUpperCase();
+             let userinputletter = prompt("please input a English letter between A-Z :").toUpperCase();
              attempts++;
              console.log("Number of Attempts: ",attempts);
              
