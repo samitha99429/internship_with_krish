@@ -3,9 +3,9 @@ const http = require("http");
 const app = express();
 const PORT = 3004;
 
-// function to call service using HTTP GET with timeout
+// function to call other service
 function callService(path, host, port, company, timeout) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const url = `http://${host}:${port}${path}?company=${company}`;
     console.log(`Requesting: ${url}`);
 
@@ -16,69 +16,80 @@ function callService(path, host, port, company, timeout) {
         data += chunk;
       });
 
-      res.on("end", () => {
+      res.on("end", () => {             //Called when all chunks are received.
         try {
           const json = JSON.parse(data);
-          resolve(json);
+          resolve({ success: true, data: json });
         } catch (e) {
           console.error(`Error parsing JSON from ${url}:`, e.message);
-          reject("Invalid JSON response");
+          resolve({ success: false, error: "Invalid JSON response" });
         }
       });
     });
 
     req.on("error", (err) => {
       console.error(`Request error for ${url}:`, err.message);
-      reject("Request error");
+      resolve({ success: false, error: "Request error" });
     });
 
-    req.setTimeout(timeout, () => {
+    req.setTimeout(timeout, () => {       //set maximum time
       console.error(`Request timeout for ${url}`);
       req.abort();
-      reject("Timeout");
+      resolve({ success: false, error: "Timeout" });
     });
   });
 }
 
-// Scatter-Gather route
+// Scatter Gather route
 app.get("/gather", async (req, res) => {
   const company = req.query.company;
   if (!company) {
     return res.status(400).json({ error: "Missing 'company' query parameter" });
   }
 
-  const timeout = 2000; // 2 seconds timeout
+  const timeout = 2000;    //2 seconds per-service timeout
 
-  // Call the three services in parallel using container hostnames
-  const services = [
-    callService("/rate", "rate-service", 3001, company, timeout),
-    callService("/allocation", "allocation-service", 3002, company, timeout),
-    callService("/logistic", "logistic-service", 3003, company, timeout),
-  ];
+  const rate = callService("/rate", "rate-service", 3001, company, timeout)
+  const allocation = callService("/allocation", "allocation-service", 3002, company, timeout)
+  const logistic = callService("/logistic", "logistic-service", 3003, company, timeout)
 
   try {
-    const results = await Promise.all(services);
+    const results = await Promise.allSettled([rate, allocation, logistic])
 
-    const responses = results.map((result, i) => {
-      switch (i) {
-        case 0:
-          return { service: "RateService", time: result.time, value: result.value };
-        case 1:
-          return { service: "AllocationService", duration: result.duration };
-        case 2:
-          return { service: "LogisticService", location: result.location };
-        default:
-          return result;
-      }
-    });
+    const responses = []
 
-    res.json({ company, responses });
-  } catch (error) {
-    console.error("Error gathering service data:", error);
-    res.status(500).json({ error: "Failed to get data from all services" });
+    // RateService
+    const r = results[0].value
+    if (r && r.success) {
+      responses.push({ service: "RateService", time: r.data.time, value: r.data.value })
+    } else {
+      responses.push({ service: "RateService", error: r ? r.error : "unknown" })
+    }
+
+    // AllocationService
+    const a = results[1].value
+    if (a && a.success) {
+      responses.push({ service: "AllocationService", duration: a.data.duration })
+    } else {
+      responses.push({ service: "AllocationService", error: a ? a.error : "unknown" })
+    }
+
+    // LogisticService
+    const l = results[2].value
+    if (l && l.success) {
+      responses.push({ service: "LogisticService", location: l.data.location })
+    } else {
+      responses.push({ service: "LogisticService", error: l ? l.error : "unknown" })
+    }
+
+    res.json({ company, responses })
+
+  } catch (err) {
+    console.log("Aggregator crash:", err)
+    res.status(500).json({ error: "aggregator failed" })
   }
-});
+})
 
 app.listen(PORT, () => {
-  console.log(`Aggregator running on port ${PORT}`);
-});
+  console.log("Aggregator running on port", PORT)
+})

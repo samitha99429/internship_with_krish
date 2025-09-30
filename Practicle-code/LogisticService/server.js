@@ -9,10 +9,10 @@ app.get('/logistic', (req, res) => {
     company,
     time: Date.now(),
     location: [
-      "Warehouse A",
-      "Checkpoint B",
-      "Port C",
-      "Delivery Hub D"
+      "Kegalle",
+      "Kandy",
+      "Colombo",
+      
     ] 
   };
 

@@ -5,7 +5,7 @@ const port = 3002;
 app.get('/allocation', (req,res)=>{
 
     
-        const company = req.query.company;
+    const company = req.query.company;
     const allocationPayload = {
 
         company,
