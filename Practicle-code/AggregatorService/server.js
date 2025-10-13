@@ -3,22 +3,23 @@ const http = require("http");
 const app = express();
 const PORT = 3004;
 
-// function to call other service
+//function to call other service
 function callService(path,host, port, company, timeout) {
   return new Promise((resolve) => {
     const url = `http://${host}:${port}${path}?company=${company}`;
     console.log(`Requesting: ${url}`);
 
-    const req = http.get(url, (res) => {
+
+    const req = http.get(url, (res) => {            //
       let data = "";
 
-      res.on("data", (chunk) => {
+      res.on("data", (chunk) => {   //gather streams data 
         data += chunk;
       });
 
       res.on("end", () => {
         try {
-          const json = JSON.parse(data);
+          const json = JSON.parse(data);      //convert string to json 
           resolve({ success: true, data: json });
         } catch (e) {
           console.error(`Error parsing JSON from ${url}:`, e.message);
@@ -34,8 +35,8 @@ function callService(path,host, port, company, timeout) {
 
     req.setTimeout(timeout, () => {
       console.error(`Request timeout for ${url}`);
-      req.abort();
-      resolve({ success: false, error: "Service Timeout" });
+      req.abort();                                     //abort requets if its took so long
+      resolve({ success: false, error: "Service Timeout" }); 
     });
   });
 }
@@ -43,7 +44,7 @@ function callService(path,host, port, company, timeout) {
 
 function handleResult(result, fields) {
   if (result && result.success) {
-    const defaults = {
+    const defaults = {        //set defualt values 
       time: 0,
       value: 0,
       duration: 0,
@@ -63,7 +64,7 @@ function handleResult(result, fields) {
 
 
 
-// Scatter Gather route
+// scatter gather route 
 app.get("/gather", async (req, res) => {
   const company = req.query.company;
   if (!company) {
