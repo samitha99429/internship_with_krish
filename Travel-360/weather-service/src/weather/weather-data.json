@@ -1,0 +1,22 @@
+{
+  "USA": {
+    "temperature": "25°C",
+    "condition": "Sunny"
+  },
+  "UK": {
+    "temperature": "16°C",
+    "condition": "Cloudy"
+  },
+  "Japan": {
+    "temperature": "20°C",
+    "condition": "Rainy"
+  },
+  "India": {
+    "temperature": "30°C",
+    "condition": "Hot"
+  },
+  "PAKK": {
+    "temperature": "28°C",
+    "condition": "Sunny"
+  }
+}
