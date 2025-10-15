@@ -22,4 +22,14 @@ export class AggregatorController {
   ) {
     return this.aggregatorService.getV2Trips(from, destination, departTime);
   }
+
+  @Get('v1/cheapest-route')
+async getCheapestRoute(
+  @Query('from') from: string,
+  @Query('destination') destination: string,
+  @Query('departTime') departTime: string,
+) {
+  return this.aggregatorService.getCheapestRoute(from, destination, departTime);
+}
+
 }

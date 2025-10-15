@@ -18,5 +18,5 @@ export class Flight {
   arriveTime: string;
 
   @Column()
-  price: string;
+  price: number;
 }

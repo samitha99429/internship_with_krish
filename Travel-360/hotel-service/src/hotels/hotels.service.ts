@@ -21,8 +21,24 @@ export class HotelsService {
     return await this.hotelRepo.save(newHotel);
   }
 
+  // async searchHotels(searchHotelDto: SearchHotelDto): Promise<Hotel[]> {
+  //   const { destination } = searchHotelDto;
+  //   return this.hotelRepo.find({ where: { destination } });
+  // }
+
   async searchHotels(searchHotelDto: SearchHotelDto): Promise<Hotel[]> {
-    const { destination } = searchHotelDto;
-    return this.hotelRepo.find({ where: { destination } });
+  const { destination, lateCheckIn } = searchHotelDto;
+
+ 
+
+
+  const where: any = { destination };
+  if (lateCheckIn) {
+                                                   //filter hotels that have lateCheckInAvailable = true
+    where.lateCheckInAvailable = true;
   }
+
+  return this.hotelRepo.find({ where });
+}
+
 }

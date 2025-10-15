@@ -16,4 +16,10 @@ export class Hotel {
 
   @Column()
   destination: string;
+
+   @Column({ default: false })
+  lateCheckInAvailable: boolean;
+
+  @Column({nullable:true})
+  lateCheckInTime:string
 }

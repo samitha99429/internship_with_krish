@@ -3,4 +3,5 @@ export class CreateHotelDto {
   rating: number;
   pricePerNight: string;
   destination: string;
+  lateCheckInAvailable?: boolean;
 }
