@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -9,14 +8,12 @@ export class WeatherService {
   private weatherData: Record<string, any> = {};
 
   constructor() {
-    
     this.filePath = path.join(process.cwd(), 'src', 'weather', 'weather-data.json');
     this.loadData();
   }
 
   private loadData() {
     if (!fs.existsSync(this.filePath)) {
-      // Create empty file if it doesn't exist
       fs.writeFileSync(this.filePath, JSON.stringify({}, null, 2));
     }
 
@@ -28,6 +25,7 @@ export class WeatherService {
     fs.writeFileSync(this.filePath, JSON.stringify(this.weatherData, null, 2));
   }
 
+  //return weather forecast fordestination
   getWeather(destination: string) {
     return (
       this.weatherData[destination] || {
@@ -36,10 +34,10 @@ export class WeatherService {
     );
   }
 
-  addWeather(destination: string, temperature: string, condition: string) {
-    this.weatherData[destination] = { temperature, condition };
+  //add forecast array for a destination
+  addWeather(destination: string, forecast: any[]) {
+    this.weatherData[destination] = { forecast };
     this.saveData();
-    return { message: 'Weather added successfullyy' };
+    return { message: 'Weather forecast added successfully!' };
   }
 }
-

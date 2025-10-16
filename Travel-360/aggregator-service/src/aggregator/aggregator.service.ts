@@ -56,10 +56,10 @@ export class AggregatorService {
         degraded = true;
       }
 
-      this.logger.log('Scatter–gather completed');
+      this.logger.log('Scatter gather is completed');
       return { flights: flightsData, hotels: hotelsData, degraded };
     } catch (error) {
-      this.logger.error('Scatter–gather failed', error.message);
+      this.logger.error('Scatter gather is failed', error.message);
       return { error: 'Aggregator failed', degraded: true };
     }
   }
@@ -111,7 +111,7 @@ async getCheapestRoute(from: string, destination: string, departTime: string) {
       return { error: 'No flights available' };
     }
 
-    //Find the cheapest flight
+          //to find the cheapest flight
     let cheapestFlight = flights[0];
     for (const f of flights) {
       if (f.price < cheapestFlight.price) cheapestFlight = f;
@@ -140,6 +140,66 @@ async getCheapestRoute(from: string, destination: string, departTime: string) {
     return { error: 'Aggregator chaining failed' };
   }
 }
+
+
+
+//Branching
+async getContextualTrips(from: string, destination: string, departTime: string) {
+  this.logger.log('Branching request started...');
+
+  
+  const coastalPlaces = ['CMB', 'BKK', 'HKT'];
+  const isCoastal = coastalPlaces.includes(destination);
+
+  try {
+    // flight and hotel calls are always made
+    const flightPromise = axios.get('http://localhost:3001/flights/search', {
+      params: { from, destination, departTime },
+    });
+
+    const hotelPromise = axios.get('http://localhost:3002/hotels/search', {
+      params: { destination },
+    });
+
+    // keep track of what we are calling
+    const allPromises = [flightPromise, hotelPromise];
+    const labels = ['flights', 'hotels'];
+
+    // if destination is coastal -> also get events
+    if (isCoastal) {
+      this.logger.log(`${destination} this is is coastal`);
+      const eventPromise = axios.get('http://localhost:3004/events/search', {
+        params: { destination },
+      });
+      allPromises.push(eventPromise);
+      labels.push('events');
+    } else {
+      this.logger.log(`${destination} is inland`);
+    }
+
+    //wait for all promises even if some fail
+    const results = await Promise.allSettled(allPromises);
+
+    // make final response object
+    const data: any = {};
+    results.forEach((res, i) => {
+      if (res.status === 'fulfilled') {
+        data[labels[i]] = res.value.data;
+      } else {
+        this.logger.warn(`${labels[i]} service failed: ${res.reason.message}`);
+        data[labels[i]] = null;
+      }
+    });
+
+    this.logger.log('Branching request finished');
+    return data;
+
+  } catch (err) {
+    this.logger.error('Contextual trips failed:', err.message);
+    return { error: 'Aggregator branching failed' };
+  }
+}
+
 
 
 }

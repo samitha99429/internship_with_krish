@@ -32,4 +32,14 @@ async getCheapestRoute(
   return this.aggregatorService.getCheapestRoute(from, destination, departTime);
 }
 
+
+@Get('v1/contextual')
+  getContextualTrips(
+    @Query('from') from: string,
+    @Query('destination') destination: string,
+    @Query('departTime') departTime: string,
+  ) {
+    return this.aggregatorService.getContextualTrips(from, destination, departTime);
+  }
+
 }

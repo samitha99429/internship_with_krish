@@ -1,22 +1,13 @@
 {
-  "USA": {
-    "temperature": "25°C",
-    "condition": "Sunny"
+  "BKK": {
+    "forecast": [
+      { "date": "2025-10-15", "tempMin": 27, "tempMax": 33, "condition": "Sunny" },
+      { "date": "2025-10-16", "tempMin": 28, "tempMax": 34, "condition": "Cloudy" }
+    ]
   },
-  "UK": {
-    "temperature": "16°C",
-    "condition": "Cloudy"
-  },
-  "Japan": {
-    "temperature": "20°C",
-    "condition": "Rainy"
-  },
-  "India": {
-    "temperature": "30°C",
-    "condition": "Hot"
-  },
-  "PAKK": {
-    "temperature": "28°C",
-    "condition": "Sunny"
+  "CMB": {
+    "forecast": [
+      { "date": "2025-10-15", "tempMin": 26, "tempMax": 31, "condition": "Rainy" }
+    ]
   }
 }

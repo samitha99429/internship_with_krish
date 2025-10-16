@@ -5,17 +5,18 @@ import { WeatherService } from './weather.service';
 export class WeatherController {
   constructor(private readonly weatherService: WeatherService) {}
 
+
   @Get()
   getWeather(@Query('destination') destination: string) {
     return this.weatherService.getWeather(destination);
   }
 
+ 
   @Post()
   addWeather(
     @Body('destination') destination: string,
-    @Body('temperature') temperature: string,
-    @Body('condition') condition: string,
+    @Body('forecast') forecast: { date: string; tempMin: number; tempMax: number; condition: string }[],
   ) {
-    return this.weatherService.addWeather(destination, temperature, condition);
+    return this.weatherService.addWeather(destination, forecast);
   }
 }
