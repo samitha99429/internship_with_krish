@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
+import { CircuitBreaker } from '../circuit-breaker/circuitBreaker';
 
 @Injectable()
 export class AggregatorService {
   private readonly logger = new Logger(AggregatorService.name);
+  private weatherBreaker = new CircuitBreaker(3,5000,3000);
 
   // Helper function for timeout
   private async callWithTimeout(promise, timeoutMs: number, label: string) {
@@ -89,24 +91,33 @@ export class AggregatorService {
   async getV2Trips(from: string, destination: string, departTime: string) {
     this.metrices.v2Count++;
     try {
-      const [flightsRes, hotelsRes, weatherRes] = await Promise.all([
+      const [flightsRes, hotelsRes] = await Promise.all([
         axios.get('http://localhost:3001/flights/search', {
           params: { from, destination, departTime },
         }),
         axios.get('http://localhost:3002/hotels/search', {
           params: { destination },
         }),
-        axios.get('http://localhost:3003/weather', {
-          params: { destination },
-        }),
+        
+        // axios.get('http://localhost:3003/weather', {
+        //   params: { destination },
+        // }),
+
       ]);
+
+
+      const weather = await this.weatherBreaker.call(async()=>{
+
+        const res = await axios.get('http://localhost:3003/weather',{params: {destination}});
+        return res.data;
+      })
 
       this.logger.log('V2 trip search executed successfully');
 
       return {
         flights: flightsRes.data,
         hotels: hotelsRes.data,
-        weather: weatherRes.data,
+        weather
       };
     } catch (error) {
       this.logger.error('V2 trip search failed', error.message);
@@ -141,7 +152,7 @@ async getCheapestRoute(from: string, destination: string, departTime: string) {
 
     this.logger.log(`Cheapest flight found: ${cheapestFlight.id} arriving at ${cheapestFlight.arriveTime}`);
 
-    //Call hotel service with lateCheckInAvailable = true
+       //Call hotel service with lateCheckInAvailable = true
     const hotelsRes = await this.callWithTimeout(
       axios.get('http://localhost:3002/hotels/search', { params: { destination } }),
       2000,
@@ -150,7 +161,7 @@ async getCheapestRoute(from: string, destination: string, departTime: string) {
 
     const hotels: any[] = hotelsRes.data;
 
-    // Pick first hotel that supports late check-in
+         //Pick first hotel that supports late check-in
     const hotel = hotels.find((h) => h.lateCheckInAvailable === true) || hotels[0];
 
     return {
@@ -174,7 +185,7 @@ async getContextualTrips(from: string, destination: string, departTime: string) 
   const isCoastal = coastalPlaces.includes(destination);
 
   try {
-    // flight and hotel calls are always made
+    //flight and hotel calls are always made
     const flightPromise = axios.get('http://localhost:3001/flights/search', {
       params: { from, destination, departTime },
     });
@@ -183,11 +194,11 @@ async getContextualTrips(from: string, destination: string, departTime: string) 
       params: { destination },
     });
 
-    // keep track of what we are calling
+    //keep track of what we are calling
     const allPromises = [flightPromise, hotelPromise];
     const labels = ['flights', 'hotels'];
 
-    // if destination is coastal -> also get events
+    // if destination is coastal also get events
     if (isCoastal) {
       this.logger.log(`${destination} this is is coastal`);
       const eventPromise = axios.get('http://localhost:3004/events/search', {

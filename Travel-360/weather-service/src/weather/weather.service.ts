@@ -16,7 +16,6 @@ export class WeatherService {
     if (!fs.existsSync(this.filePath)) {
       fs.writeFileSync(this.filePath, JSON.stringify({}, null, 2));
     }
-
     const file = fs.readFileSync(this.filePath, 'utf8');
     this.weatherData = JSON.parse(file);
   }
@@ -25,8 +24,21 @@ export class WeatherService {
     fs.writeFileSync(this.filePath, JSON.stringify(this.weatherData, null, 2));
   }
 
-  //return weather forecast fordestination
-  getWeather(destination: string) {
+  async getWeather(destination: string) {
+    const delayMs = parseInt(process.env.WEATHER_DELAY_MS ?? '0'); 
+const failRate = parseFloat(process.env.WEATHER_FAIL_RATE ?? '0'); // default to '0' if undefined
+
+
+    //simulate delay
+    if (delayMs > 0) {
+      await new Promise((res) => setTimeout(res, delayMs));
+    }
+
+    //simulate random failure
+    if (Math.random() < failRate) {
+      throw new Error('Simulated weather service failure');
+    }
+
     return (
       this.weatherData[destination] || {
         message: 'No weather data available for this destination',
@@ -34,7 +46,6 @@ export class WeatherService {
     );
   }
 
-  //add forecast array for a destination
   addWeather(destination: string, forecast: any[]) {
     this.weatherData[destination] = { forecast };
     this.saveData();

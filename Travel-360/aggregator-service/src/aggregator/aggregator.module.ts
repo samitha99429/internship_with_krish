@@ -4,6 +4,6 @@ import { AggregatorService } from './aggregator.service';
 
 @Module({
   controllers: [AggregatorController],
-  providers: [AggregatorService],
+  providers: [AggregatorService]
 })
 export class AggregatorModule {}
