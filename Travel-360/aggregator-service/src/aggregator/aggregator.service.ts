@@ -15,8 +15,29 @@ export class AggregatorService {
     ]);
   }
 
+
+  private metrices ={
+
+    v1Count:0,
+    v2Count:0,
+
+  }
+
+
+  getmetrices(){
+
+    return {
+      totalRequets: this.metrices.v1Count + this.metrices.v2Count,
+      v1Requets: this.metrices.v1Count,
+      v2Requets: this.metrices.v2Count
+
+    };
+
+  }
+
   // v1
   async getV1Trips(from: string, destination: string, departTime: string) {
+    this.metrices.v1Count++;
     this.logger.log('Scatter gather request received');
 
     let flightsData = null;
@@ -66,6 +87,7 @@ export class AggregatorService {
 
   //v2 
   async getV2Trips(from: string, destination: string, departTime: string) {
+    this.metrices.v2Count++;
     try {
       const [flightsRes, hotelsRes, weatherRes] = await Promise.all([
         axios.get('http://localhost:3001/flights/search', {

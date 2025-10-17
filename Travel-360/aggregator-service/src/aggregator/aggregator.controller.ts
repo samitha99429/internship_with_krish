@@ -42,4 +42,9 @@ async getCheapestRoute(
     return this.aggregatorService.getContextualTrips(from, destination, departTime);
   }
 
+  @Get('metrices')
+  getMetrices(){
+    return this.aggregatorService.getmetrices();
+  }
+
 }
